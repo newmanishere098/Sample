@@ -1,27 +1,16 @@
-# vulnerable_login.py
-# Example of intentionally vulnerable code (for educational/testing purposes only)
-
 import sqlite3
-
-conn = sqlite3.connect("users.db")
-cursor = conn.cursor()
 
 username = input("Username: ")
 password = input("Password: ")
 
-# Vulnerable SQL query
-query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
 
-print("Executing query:")
-print(query)
+query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
 
 cursor.execute(query)
 
-result = cursor.fetchone()
-
-if result:
+if cursor.fetchone():
     print("Login successful")
 else:
-    print("Invalid credentials")
-
-conn.close()
+    print("Login failed")
