@@ -1,4 +1,16 @@
-cursor.execute(
-    "SELECT * FROM users WHERE username = ? AND password = ?",
-    (username, password)
-)
+import sqlite3
+
+username = input("Username: ")
+password = input("Password: ")
+
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+
+query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+
+cursor.execute(query)
+
+if cursor.fetchone():
+    print("Login successful")
+else:
+    print("Login failed")
