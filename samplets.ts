@@ -1,37 +1,54 @@
-import express, { Request, Response } from 'express';
-import mysql from 'mysql2/promise';
-import fs from 'fs/promises';
-import path from 'path';
-import { spawn } from 'child_process';
+java 
 
-const app = express();
-app.use(express.json());
 
-// Environment-based configuration
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-};
 
-const VALID_USERNAME = /^[a-zA-Z0-9_]{3,20}$/;
+import java.sql.*;
+import java.io.*;
+import java.util.*;
 
-app.post('/login', async (req: Request, res: Response) => {
+public class InsecureUserLogin {
 
-    try {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/appdb";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root123";
 
-        const username: string = req.body.username;
-        const password: string = req.body.password;
+    public static void main(String[] args) throws Exception {
 
-        // Input validation
-        if (!VALID_USERNAME.test(username)) {
-            return res.status(400).send('Invalid username format');
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+
+        // SQL Injection Vulnerability
+        String query = "SELECT * FROM users WHERE username='" + username +
+                "' AND password='" + password + "'";
+
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+
+        if (rs.next()) {
+            System.out.println("Login successful");
+
+            // Command Injection Vulnerability
+            Runtime.getRuntime().exec("ping " + username);
+
+            // Arbitrary File Read Vulnerability
+            File file = new File("/tmp/" + username);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            System.out.println(br.readLine());
+            br.close();
+
+        } else {
+            System.out.println("Invalid credentials");
         }
 
-        const connection = await mysql.createConnection(dbConfig);
-
-        // Parameterized query
-        const [rows] = await connection.execute(
-            'SELECT id FROM users WHERE username = ? AND password = ?',
-});
+        rs.close();
+        stmt.close();
+        conn.close();
+    }
+}
