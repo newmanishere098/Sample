@@ -1,54 +1,42 @@
-java 
+import express from "express";
+import sqlite3 from "sqlite3";
 
+const app = express();
+app.use(express.json());
 
+const db = new sqlite3.Database(":memory:");
 
-import java.sql.*;
-import java.io.*;
-import java.util.*;
+db.run(`
+  CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    username TEXT,
+    password TEXT
+  )
+`);
 
-public class InsecureUserLogin {
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/appdb";
-    private static final String USER = "root";
-    private static final String PASSWORD = "root123";
+  // ❌ VULNERABLE CODE
+  const query = `
+    SELECT * FROM users
+    WHERE username = '${username}'
+    AND password = '${password}'
+  `;
 
-    public static void main(String[] args) throws Exception {
-
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
-
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
-
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
-
-        // SQL Injection Vulnerability
-        String query = "SELECT * FROM users WHERE username='" + username +
-                "' AND password='" + password + "'";
-
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(query);
-
-        if (rs.next()) {
-            System.out.println("Login successful");
-
-            // Command Injection Vulnerability
-            Runtime.getRuntime().exec("ping " + username);
-
-            // Arbitrary File Read Vulnerability
-            File file = new File("/tmp/" + username);
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            System.out.println(br.readLine());
-            br.close();
-
-        } else {
-            System.out.println("Invalid credentials");
-        }
-
-        rs.close();
-        stmt.close();
-        conn.close();
+  db.get(query, (err, row) => {
+    if (err) {
+      return res.status(500).send(err.message);
     }
-}
+
+    if (row) {
+      res.send("Logged in!");
+    } else {
+      res.status(401).send("Invalid credentials");
+    }
+  });
+});
+
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});
