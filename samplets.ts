@@ -1,21 +1,15 @@
 import express from "express";
-import { exec } from "child_process";
 
 const app = express();
 
-app.get("/ping", (req, res) => {
-  const host = req.query.host as string;
+app.get("/user", (req, res) => {
+  const username = req.query.username;
 
-  // ❌ VULNERABLE
-  exec(`ping -c 1 ${host}`, (err, stdout, stderr) => {
-    if (err) {
-      return res.status(500).send(stderr);
-    }
+  // ❌ Vulnerable
+  const query =
+    `SELECT * FROM users WHERE username = '${username}'`;
 
-    res.send(stdout);
-  });
+  res.send(query);
 });
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+app.listen(3000);
