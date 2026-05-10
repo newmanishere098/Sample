@@ -5,13 +5,9 @@ int main() {
     char password[8];
 
     printf("Enter password: ");
+    gets(password);   // DANGEROUS
 
-    if (fgets(password, sizeof(password), stdin) != NULL) {
-
-        password[strcspn(password, "\n")] = '\0';
-
-        printf("You entered: %s\n", password);
-    }
+    printf("You entered: %s\n", password);
 
     return 0;
 }
