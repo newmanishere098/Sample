@@ -1,37 +1,42 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const fs = require('fs/promises');
-const path = require('path');
-const { spawn } = require('child_process');
+import java.sql.*;
+import java.util.Scanner;
 
-const app = express();
-app.use(express.json());
+public class VulnerableLogin {
 
-// Environment-based credentials
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-};
+    public static void main(String[] args) throws Exception {
 
-const VALID_USERNAME = /^[a-zA-Z0-9_]{3,20}$/;
+        Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:test.db"
+        );
 
-app.post('/login', async (req, res) => {
+        Scanner scanner = new Scanner(System.in);
 
-    try {
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
 
-        const username = req.body.username;
-        const password = req.body.password;
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
 
-        // Input validation
-        if (!VALID_USERNAME.test(username)) {
-            return res.status(400).send('Invalid username format');
+        // ❌ VULNERABLE QUERY
+        String query =
+                "SELECT * FROM users WHERE username = '"
+                + username
+                + "' AND password = '"
+                + password
+                + "'";
+
+        Statement stmt = conn.createStatement();
+
+        ResultSet rs = stmt.executeQuery(query);
+
+        if (rs.next()) {
+            System.out.println("Login successful");
+        } else {
+            System.out.println("Invalid credentials");
         }
 
-        const connection = await mysql.createConnection(dbConfig);
-
-        // Parameterized query
-        const [rows] = await connection.execute(
-            'SELECT id FROM users WHERE username = ? AND password = ?',
-});
+        rs.close();
+        stmt.close();
+        conn.close();
+    }
+}
