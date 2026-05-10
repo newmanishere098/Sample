@@ -1,21 +1,42 @@
-import express from "express";
-import { exec } from "child_process";
+import java.sql.*;
+import java.util.Scanner;
 
-const app = express();
+public class VulnerableLogin {
 
-app.get("/ping", (req, res) => {
-  const host = req.query.host as string;
+    public static void main(String[] args) throws Exception {
 
-  // ❌ VULNERABLE
-  exec(`ping -c 1 ${host}`, (err, stdout, stderr) => {
-    if (err) {
-      return res.status(500).send(stderr);
+        Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:test.db"
+        );
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+
+        // ❌ VULNERABLE QUERY
+        String query =
+                "SELECT * FROM users WHERE username = '"
+                + username
+                + "' AND password = '"
+                + password
+                + "'";
+
+        Statement stmt = conn.createStatement();
+
+        ResultSet rs = stmt.executeQuery(query);
+
+        if (rs.next()) {
+            System.out.println("Login successful");
+        } else {
+            System.out.println("Invalid credentials");
+        }
+
+        rs.close();
+        stmt.close();
+        conn.close();
     }
-
-    res.send(stdout);
-  });
-});
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+}
