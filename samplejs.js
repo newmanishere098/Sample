@@ -1,37 +1,26 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const fs = require('fs/promises');
-const path = require('path');
-const { spawn } = require('child_process');
+// VulnerableApp.java
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
-const app = express();
-app.use(express.json());
+public class VulnerableApp {
+    public static void main(String[] args) throws Exception {
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(System.in));
 
-// Environment-based credentials
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-};
+        System.out.print("Enter host: ");
+        String host = reader.readLine();
 
-const VALID_USERNAME = /^[a-zA-Z0-9_]{3,20}$/;
+        // VULNERABLE: Command Injection
+        Process process = Runtime.getRuntime().exec("ping " + host);
 
-app.post('/login', async (req, res) => {
+        BufferedReader output =
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
 
-    try {
+        String line;
 
-        const username = req.body.username;
-        const password = req.body.password;
-
-        // Input validation
-        if (!VALID_USERNAME.test(username)) {
-            return res.status(400).send('Invalid username format');
+        while ((line = output.readLine()) != null) {
+            System.out.println(line);
         }
-
-        const connection = await mysql.createConnection(dbConfig);
-
-        // Parameterized query
-        const [rows] = await connection.execute(
-            'SELECT id FROM users WHERE username = ? AND password = ?',
-});
+    }
+}
